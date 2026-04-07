@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Hosting - بيئة تشغيل Python متكاملة</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐍 Python Hosting</h1>
+            <p>بيئة تشغيل Python متكاملة مع دعم numpy, pandas, requests والمزيد</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="editor">✏️ محرر الكود</button>
+            <button class="tab-btn" data-tab="upload">📁 رفع ملفات</button>
+            <button class="tab-btn" data-tab="info">ℹ️ المكتبات المتاحة</button>
+        </div>
+
+        <main>
+            <div id="editor" class="tab-content active">
+                <div class="editor-container">
+                    <div class="toolbar">
+                        <button id="runBtn" class="btn-run">▶ تشغيل</button>
+                        <button id="clearBtn" class="btn-clear">🗑 مسح</button>
+                        <button id="exampleBtn" class="btn-example">📝 أمثلة</button>
+                    </div>
+                    
+                    <textarea id="codeEditor" placeholder="اكتب كود Python هنا..."></textarea>
+                </div>
+
+                <div class="output-container">
+                    <div class="output-header">
+                        <span>📤 المخرجات</span>
+                        <button id="copyBtn" class="btn-copy">📋 نسخ</button>
+                    </div>
+                    <pre id="outputArea">اضغط على "تشغيل" لتنفيذ الكود...</pre>
+                </div>
+            </div>
+
+            <div id="upload" class="tab-content">
+                <div class="upload-container">
+                    <h3>📂 رفع ملف Python وتشغيله</h3>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept=".py,.txt,.json" style="display: none">
+                        <button id="uploadBtn" class="btn-upload">اختر ملف</button>
+                        <p id="fileName" style="margin-top: 10px; color: #888;">لم يتم اختيار ملف</p>
+                    </div>
+                    <div id="uploadResult" class="upload-result"></div>
+                </div>
+            </div>
+
+            <div id="info" class="tab-content">
+                <div class="info-container">
+                    <h3>📚 المكتبات المدعومة</h3>
+                    <div class="libraries-grid" id="librariesList">
+                        <div class="loading">جاري تحميل المكتبات...</div>
+                    </div>
+                    <div class="info-note">
+                        <h4>💡 ملاحظات مهمة:</h4>
+                        <ul>
+                            <li>⏱️ المهلة الزمنية: 10 ثوانٍ كحد أقصى</li>
+                            <li>📦 الحجم الأقصى للملف: 5 ميجابايت</li>
+                            <li>🔒 البيئة آمنة ومعزولة</li>
+                            <li>🚀 يدعم numpy, pandas, requests, scipy, matplotlib, sklearn</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>⚡ يعمل على Vercel | 🐍 Python 3.9 | 📦 مع جميع المكتبات الشائعة | 🚀 تنفيذ آمن وسريع</p>
+        </footer>
+    </div>
+
+    <script>
+        // تبديل التبويبات
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        const codeEditor = document.getElementById('codeEditor');
+        const outputArea = document.getElementById('outputArea');
+        const runBtn = document.getElementById('runBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const exampleBtn = document.getElementById('exampleBtn');
+        const copyBtn = document.getElementById('copyBtn');
+
+        // أمثلة جاهزة
+        const examples = {
+            'numpy': `import numpy as np
+
+# إنشاء مصفوفة
+arr = np.array([1, 2, 3, 4, 5])
+print(f"المصفوفة: {arr}")
+print(f"المتوسط: {np.mean(arr)}")
+print(f"الانحراف المعياري: {np.std(arr)}")
+
+# عمليات رياضية
+print(f"الجذر التربيعي: {np.sqrt(arr)}")`,
+            
+            'pandas': `import pandas as pd
+
+# إنشاء DataFrame
+data = {
+    'الاسم': ['أحمد', 'سارة', 'محمد', 'فاطمة'],
+    'العمر': [25, 30, 28, 24],
+    'المدينة': ['الرياض', 'جدة', 'الدمام', 'مكة']
+}
+df = pd.DataFrame(data)
+print("البيانات:")
+print(df)
+print("\\nمتوسط الأعمار:", df['العمر'].mean())`,
+            
+            'requests': `import requests
+
+# جلب بيانات من API
+response = requests.get('https://api.github.com')
+print(f"الحالة: {response.status_code}")
+print(f"النوع: {response.headers.get('content-type')}")
+
+# مثال آخر
+try:
+    response = requests.get('https://jsonplaceholder.typicode.com/posts/1')
+    data = response.json()
+    print(f"\\nالعنوان: {data['title'][:50]}...")
+except Exception as e:
+    print(f"خطأ: {e}")`,
+            
+            'matplotlib': `import matplotlib.pyplot as plt
+import numpy as np
+
+# إنشاء بيانات
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+
+# رسم بياني
+plt.figure(figsize=(8, 4))
+plt.plot(x, y, 'b-', linewidth=2)
+plt.title('رسم بياني بسيط')
+plt.xlabel('المحور x')
+plt.ylabel('المحور y')
+plt.grid(True, alpha=0.3)
+plt.show()`
+        };
+
+        let exampleIndex = 0;
+        const exampleList = Object.values(examples);
+
+        exampleBtn.addEventListener('click', () => {
+            codeEditor.value = exampleList[exampleIndex % exampleList.length];
+            exampleIndex++;
+            outputArea.textContent = 'تم تحميل المثال. اضغط "تشغيل" لتنفيذه.';
+        });
+
+        runBtn.addEventListener('click', async () => {
+            const code = codeEditor.value;
+            if (!code.trim()) {
+                outputArea.textContent = '⚠️ الرجاء كتابة كود Python أولاً';
+                return;
+            }
+            
+            outputArea.textContent = '⏳ جاري التنفيذ...';
+            
+            const formData = new FormData();
+            formData.append('code', code);
+            
+            try {
+                const response = await fetch('/execute', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    outputArea.textContent = data.output;
+                    if (data.error) {
+                        outputArea.textContent += '\n\n⚠️ تحذيرات:\n' + data.error;
+                    }
+                } else {
+                    outputArea.textContent = data.error || 'حدث خطأ غير متوقع';
+                }
+            } catch (error) {
+                outputArea.textContent = `❌ خطأ في الاتصال: ${error.message}`;
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            codeEditor.value = '';
+            outputArea.textContent = '🗑️ تم مسح الكود';
+        });
+
+        copyBtn.addEventListener('click', () => {
+            const output = outputArea.textContent;
+            navigator.clipboard.writeText(output).then(() => {
+                const original = copyBtn.textContent;
+                copyBtn.textContent = '✅ تم النسخ!';
+                setTimeout(() => copyBtn.textContent = original, 2000);
+            });
+        });
+
+        // رفع الملفات
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileName = document.getElementById('fileName');
+        const uploadResult = document.getElementById('uploadResult');
+
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            fileName.textContent = `📄 ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            uploadResult.innerHTML = '<div class="loading">⏳ جاري الرفع...</div>';
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    uploadResult.innerHTML = `
+                        <div class="success-message">
+                            ✅ ${data.message}<br>
+                            ${data.output ? '<pre>' + data.output + '</pre>' : ''}
+                            ${data.error ? '<pre class="error">' + data.error + '</pre>' : ''}
+                        </div>
+                    `;
+                    if (data.output) {
+                        outputArea.textContent = data.output;
+                        document.querySelector('[data-tab="editor"]').click();
+                    }
+                } else {
+                    uploadResult.innerHTML = `<div class="error-message">❌ ${data.error}</div>`;
+                }
+            } catch (error) {
+                uploadResult.innerHTML = `<div class="error-message">❌ خطأ: ${error.message}</div>`;
+            }
+        });
+
+        // جلب قائمة المكتبات
+        async function loadLibraries() {
+            try {
+                const response = await fetch('/libraries');
+                const data = await response.json();
+                
+                const html = `
+                    <div class="lib-category">
+                        <h4>📦 المكتبات المدمجة</h4>
+                        <div class="lib-list">${data.standard.map(lib => `<span class="lib-tag">${lib}</span>`).join('')}</div>
+                    </div>
+                    <div class="lib-category">
+                        <h4>🔧 المكتبات المثبتة</h4>
+                        <div class="lib-list">${data.installed.map(lib => `<span class="lib-tag installed">${lib}</span>`).join('')}</div>
+                    </div>
+                `;
+                document.getElementById('librariesList').innerHTML = html;
+            } catch (error) {
+                document.getElementById('librariesList').innerHTML = '<div class="error">❌ فشل تحميل المكتبات</div>';
+            }
+        }
+        
+        loadLibraries();
+        
+        // مثال افتراضي
+        codeEditor.value = `# مرحباً بك في Python Hosting!
+print("مرحباً بك في بيئة Python المتكاملة!")
+
+# مثال باستخدام numpy
+import numpy as np
+arr = np.array([10, 20, 30, 40, 50])
+print(f"\\nالمصفوفة: {arr}")
+print(f"المتوسط: {np.mean(arr)}")
+
+# مثال باستخدام datetime
+from datetime import datetime
+print(f"\\nالوقت الحالي: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+print("\\n✨ جرب مكتبات أخرى: pandas, requests, matplotlib!")`;
+    </script>
+</body>
+</html>
